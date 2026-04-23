@@ -420,18 +420,11 @@ st.markdown("Completá los campos, subí los archivos y ejecutá el sistema.")
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
 # ── Instructivo ──
-with st.expander("📖 Instrucciones y documentación"):
+with st.expander("📖 ¿Qué hace este sistema?"):
+    st.markdown("Asigna automáticamente docentes a cursos usando programación lineal entera (PuLP). A partir de dos archivos CSV —uno con los requisitos de cada docente y otro con la programación de clases— el sistema encuentra la combinación de asignaciones que maximiza un puntaje compuesto, respetando todas las restricciones definidas.")
+
+with st.expander("📋 Formularios para docentes"):
     st.markdown("""
-## ¿Qué hace este sistema?
-
-Asigna automáticamente docentes a cursos usando programación lineal entera (PuLP). A partir de dos archivos CSV —uno con los requisitos de cada docente y otro con la programación de clases— el sistema encuentra la combinación de asignaciones que maximiza un puntaje compuesto, respetando todas las restricciones definidas.
-
----
-
-## Formularios para docentes
-
-El sistema requiere que cada docente complete un formulario con sus preferencias y disponibilidad. A continuación se proveen dos plantillas según el contexto de asignación.
-
 **Formulario solo online**
 Para cuatrimestres donde todos los cursos son online. No incluye preguntas de sede ni disponibilidad presencial.
 👉 [Link para duplicar — Formulario online](#)
@@ -442,68 +435,59 @@ Para cuatrimestres con cursos presenciales y/o online. El docente puede indicar 
 
 ---
 
-## Instrucciones para configurar el formulario
-
 **Nombres de columnas y valores**
-Los nombres de las columnas del formulario **no deben modificarse bajo ningún concepto**. El sistema los busca de forma exacta, y cualquier cambio —aunque sea un espacio de más o una tilde distinta— va a provocar errores. Lo mismo aplica para los valores predefinidos de las preguntas de opción múltiple (turnos, sedes, modalidades): no deben modificarse.
+Los nombres de las columnas del formulario **no deben modificarse bajo ningún concepto**. El sistema los busca de forma exacta, y cualquier cambio —aunque sea un espacio de más o una tilde distinta— va a provocar errores. Lo mismo aplica para los valores predefinidos de las preguntas de opción múltiple: no deben modificarse.
 
 **Nombres de materias**
-Las materias que se listen en el formulario deben escribirse **exactamente igual** a como figuran en el archivo de programación de clases. Una diferencia mínima (mayúsculas, tildes, abreviaturas) va a hacer que el sistema no reconozca la materia y no asigne al docente a ese curso.
+Las materias que se listen en el formulario deben escribirse **exactamente igual** a como figuran en el archivo de programación de clases.
 
 **Columna `Apellido, Nombre`**
-Esta columna puede eliminarse del formulario sin problema. Cuando el docente inicia sesión con su cuenta institucional, Microsoft Forms guarda automáticamente su nombre en la columna `Nombre`, que es la que usa el sistema en primer lugar. Si preferís mantener `Apellido, Nombre` como respaldo, podés hacerlo. También es útil si necesitás agregar manualmente algún docente que no completó el formulario.
+Esta columna puede eliminarse del formulario sin problema. Cuando el docente inicia sesión con su cuenta institucional, Microsoft Forms guarda automáticamente su nombre en la columna `Nombre`. Si preferís mantener `Apellido, Nombre` como respaldo, podés hacerlo.
 
-> ⚠️ **Importante:** avisale a cada docente que complete el formulario **desde su cuenta institucional** (`@uade.edu.ar`). Si lo completa desde una cuenta personal, el nombre y el correo electrónico no van a quedar registrados correctamente, lo que puede afectar la deduplicación de respuestas.
+> ⚠️ **Importante:** avisale a cada docente que complete el formulario **desde su cuenta institucional** (`@uade.edu.ar`).
+    """)
+
+with st.expander("⚙️ Antes de empezar"):
+    st.markdown("""
+**¿Qué archivos necesito?**
+
+1. **Archivo de requisitos docentes** — exportación del formulario que completan los profesores.
+2. **Archivo de programación de clases** — planilla con los cursos a asignar.
 
 ---
 
-## Antes de empezar
+**¿Cómo obtener el CSV a partir del formulario?**
 
-### ¿Qué archivos necesito?
+1. Abrí el formulario en Microsoft Forms → pestaña **Respuestas**
+2. Hacé clic en **Abrir en Excel**
+3. Guardalo como **CSV UTF-8 (delimitado por comas)**
+4. Ese es el archivo que subís al sistema
 
-Necesitás tener dos archivos en formato **CSV**:
+---
 
-1. **Archivo de requisitos docentes** — es la exportación del formulario que completan los profesores. Lo descargás desde Microsoft Forms como Excel y luego lo guardás como CSV.
-2. **Archivo de programación de clases** — es la planilla con los cursos a asignar, exportada también como CSV.
+**¿Cómo debe estar separado el CSV?**
 
-### ¿Cómo obtener el CSV a partir del formulario?
+El sistema espera separación por **punto y coma (;)**. Si está separado por comas:
+1. Abrí en Excel y guardá como **CSV UTF-8**
+2. Abrilo en el Bloc de Notas
+3. Ctrl+H: buscá `,` y reemplazá por `;`
+4. Guardá
 
-1. Abrí el formulario en Microsoft Forms y hacé clic en la pestaña **Respuestas**
-2. Hacé clic en **Abrir en Excel** — esto descarga directamente un archivo Excel con todas las respuestas
-3. Abrí ese archivo en Excel
-4. Guardalo como **CSV UTF-8 (delimitado por comas)** — es importante elegir específicamente esta opción para que las tildes y la ñ se vean correctamente
-5. Ese es el archivo que subís al sistema
+---
 
-### ¿Cómo debe estar separado el CSV?
+**¿Qué formato de fecha deben tener las columnas del formulario?**
 
-El sistema espera que los valores estén separados por **punto y coma (;)**. Si al abrir el CSV en el Bloc de Notas ves que los valores están separados por comas, tenés que corregirlo antes de usarlo:
-
-1. Abrí el archivo en Excel
-2. Guardalo como **CSV UTF-8 (delimitado por comas)**
-3. Abrilo en el Bloc de Notas
-4. Hacé Ctrl+H (buscar y reemplazar), buscá `,` y reemplazá por `;`
-5. Guardá
-
-### ¿Qué formato de fecha deben tener las columnas del formulario?
-
-El sistema usa la columna `Hora de finalización` para determinar cuál es la última respuesta de cada docente en caso de que haya respondido más de una vez. El formato preferido es `dd/mm/yyyy hh:mm` (por ejemplo: `23/04/2026 14:17`). Si al abrir el archivo en Excel ves que las fechas tienen otro formato, podés corregirlo antes de exportar el CSV:
-
+El sistema usa `Hora de finalización` para determinar la última respuesta de cada docente. Formato preferido: `dd/mm/yyyy hh:mm`. Para corregirlo en Excel:
 1. Seleccioná la columna `Hora de finalización`
-2. Hacé clic derecho → **Formato de celdas**
-3. Elegí la categoría **Personalizada**
-4. En el campo de formato escribí: `dd/mm/yyyy hh:mm`
-5. Aceptá y volvé a exportar el archivo como CSV UTF-8
+2. Clic derecho → **Formato de celdas** → **Personalizada**
+3. Escribí: `dd/mm/yyyy hh:mm`
+4. Aceptá y volvé a exportar como CSV UTF-8
 
-Si el formato no es exactamente ese, el sistema va a intentar detectarlo automáticamente e informará en pantalla si lo logró correctamente.
+Si el formato no coincide, el sistema intentará detectarlo automáticamente e informará en pantalla.
+    """)
 
-### ¿Qué nombres deben tener los archivos?
-
-Podés nombrarlos como quieras, pero **sin espacios ni caracteres especiales** (sin tildes, sin ñ, sin paréntesis).
-
----
-
-## Columnas del formulario y su comportamiento en el sistema
-
+with st.expander("📊 Columnas del formulario y su comportamiento"):
+    st.markdown("""
 | Columna | ¿Obligatoria? | ¿Qué pasa si falta o está vacía? |
 |---|---|---|
 | `Nombre` | No | Se usa `Apellido, Nombre` como respaldo |
@@ -525,11 +509,10 @@ Podés nombrarlos como quieras, pero **sin espacios ni caracteres especiales** (
 | `Cantidad máxima de cursos a la mañana (opcional)` | No | Sin este valor no hay límite por turno mañana |
 | `Cantidad máxima de cursos a la tarde (opcional)` | No | Sin este valor no hay límite por turno tarde |
 | `Cantidad máxima de cursos a la noche (opcional)` | No | Sin este valor no hay límite por turno noche |
+    """)
 
----
-
-## Cómo ejecutar el sistema paso a paso
-
+with st.expander("▶ Cómo ejecutar el sistema paso a paso"):
+    st.markdown("""
 **Paso 1 — Subir los archivos**
 Usá los botones de carga para subir los dos archivos CSV.
 
@@ -537,48 +520,41 @@ Usá los botones de carga para subir los dos archivos CSV.
 Escribí el nombre del departamento exactamente como figura en el archivo de programación. Si lo dejás vacío, se procesarán todos los cursos.
 
 **Paso 3 — Ejecutar**
-Hacé clic en **Ejecutar asignación**. El sistema puede tardar varios minutos dependiendo de la cantidad de docentes y cursos. No cerrés la pestaña ni interrumpas la ejecución.
+Hacé clic en **Ejecutar asignación**. Puede tardar varios minutos. No cerrés la pestaña ni interrumpas la ejecución.
 
 **Paso 4 — Ver los resultados y descargar**
-Una vez finalizado, los resultados aparecen en pantalla. Podés descargar el archivo `programacion_actualizada.csv` con el botón de descarga.
+Los resultados aparecen en pantalla. Podés descargar `programacion_actualizada.csv` con el botón de descarga.
 
 > ⚠️ **Cómo abrir correctamente el archivo de resultados en Excel**
-> Si abrís el archivo `programacion_actualizada.csv` con doble clic, Excel va a mostrar mal las tildes, la ñ y otros caracteres especiales. La manera correcta de abrirlo es:
-> 1. Abrí Excel primero, sin abrir ningún archivo
-> 2. Andá a la pestaña **Datos**
-> 3. Hacé clic en **Obtener datos externos** → **Desde texto/CSV**
-> 4. Seleccioná el archivo y asegurate de elegir codificación **UTF-8**
-> 5. Finalizá la importación
+> Abrirlo con doble clic muestra mal las tildes y la ñ. La manera correcta:
+> 1. Abrí Excel primero
+> 2. Datos → **Obtener datos externos** → **Desde texto/CSV**
+> 3. Seleccioná el archivo y elegí codificación **UTF-8**
+    """)
 
----
-
-## Si algo sale mal
-
+with st.expander("🚨 Si algo sale mal"):
+    st.markdown("""
 **El sistema no encuentra el archivo**
-Verificá que el nombre del archivo no tenga caracteres especiales y que esté correctamente subido.
+Verificá que el archivo esté correctamente subido y sin caracteres especiales en el nombre.
 
 **Las tildes y la ñ se ven mal**
+- **Dentro del sistema** — El CSV no está en formato UTF-8. Volvé a exportarlo eligiendo **CSV UTF-8**.
+- **En el archivo de resultados** — Abrilo desde Excel → Datos → Desde texto/CSV, eligiendo codificación UTF-8.
 
-- **Dentro del sistema o en el análisis (el CSV que subís tiene caracteres rotos)**
-  El archivo CSV no está en formato UTF-8. Volvé a exportarlo desde Excel eligiendo específicamente **CSV UTF-8**.
-
-- **En el archivo de resultados que descargás (`programacion_actualizada.csv`)**
-  El archivo está correctamente codificado, pero Excel lo interpreta mal cuando se abre con doble clic. Seguí los pasos de la sección anterior para abrirlo correctamente.
-
-**La deduplicación de respuestas no funcionó correctamente**
-Verificá que la columna `Hora de finalización` tenga el formato `dd/mm/yyyy hh:mm`. Si no, corregilo en Excel siguiendo los pasos de la sección "¿Qué formato de fecha deben tener las columnas del formulario?". El sistema informará en pantalla si el formato fue identificado correctamente o si tuvo que inferirlo automáticamente.
+**La deduplicación no funcionó correctamente**
+Verificá que `Hora de finalización` tenga el formato `dd/mm/yyyy hh:mm`. El sistema informará si lo identificó correctamente o tuvo que inferirlo.
 
 **El sistema dice que una columna no existe**
-Los nombres de las columnas en el CSV deben coincidir exactamente con los que espera el sistema. No los modifiques.
+Los nombres de columnas no deben modificarse. Deben coincidir exactamente con los que espera el sistema.
 
 **El resultado dice 0% de asignación o muy pocos docentes asignados**
-Puede deberse a que las disponibilidades declaradas por los docentes no coinciden con ningún curso de la programación, o a que los nombres de las materias en el formulario no coinciden exactamente con los de la programación.
+Verificá que las disponibilidades y los nombres de materias coincidan exactamente entre el formulario y la programación.
 
 **El sistema tarda mucho**
-Es normal. Dependiendo de la cantidad de docentes y cursos, puede tardar varios minutos. No cerrés la pestaña ni interrumpas la ejecución.
+Es normal. No cerrés la pestaña ni interrumpas la ejecución.
 
 **Aparece un error en rojo y el sistema se detiene**
-Copiá el mensaje de error y consultalo con quien administra el sistema. No modifiques el código por tu cuenta.
+Copiá el mensaje de error y consultalo con quien administra el sistema.
     """)
 
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
@@ -590,7 +566,7 @@ with col1:
 with col2:
     archivo_programacion = st.file_uploader("Archivo de programación de clases (.csv)", type=["csv"])
 
-departamento = st.text_input("Departamento", placeholder="Ej: MARKETING").strip().upper()
+departamento = st.text_input("Departamento", placeholder="Ej: DENET").strip().upper()
 
 # ── Configuración avanzada ──
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
