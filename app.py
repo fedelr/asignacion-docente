@@ -518,7 +518,7 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
 
 # ─── UI ──────────────────────────────────────────────────────────────────────
 st.markdown("# Asignación Docente")
-st.markdown("**Fecha:** 23/04/2025 · **Autor:** Federico La Rocca")
+st.markdown("**Fecha:** 23/04/2026 · **Autor:** Federico La Rocca")
 st.markdown("Completá los campos, subí los archivos y ejecutá el sistema.")
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
