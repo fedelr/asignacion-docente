@@ -408,7 +408,110 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
         'sin_asignacion':    sin_asignacion,
         'cursos_sin_docentes': cursos_sin_docentes,
         'modo_virtual':      modo_virtual,
+        'sugerencias':       [],
     }
+
+    # Sugerencias de cambio de día para cursos no asignados
+    for _, curso in no_asignados_df.iterrows():
+        clase = str(curso['Clase']).strip()
+        materia = curso['Materia'].strip().upper()
+        sede = curso['Sede'].strip().upper()
+        modalidad = 'ONLINE' if sede == 'UADE ONLINE' else 'PRESENCIAL'
+        dia_actual = normalize_n(str(curso['Dias De Cursada']).strip().upper())
+        turno = detectar_turno(curso['Horario'])
+
+        valor_pack = curso.get('Packs Asociados', '')
+        tiene_pack = not (pd.isna(valor_pack) or str(valor_pack).strip() in ['', '-'])
+        pack_info = "⚠️ Con Pack" if tiene_pack else "✅ Sin Pack"
+
+        if not turno:
+            continue
+
+        mejores_por_dia = {}
+
+        for j, docente in requisitos_df.iterrows():
+            nombre_docente = obtener_nombre_docente(docente, cols)
+
+            if not modo_virtual:
+                modalidades_interes = {m.strip().upper() for m in str(docente.get('Modalidades de su interés', '')).split(';') if m.strip()}
+                if modalidad not in modalidades_interes:
+                    continue
+
+            materias_pref = {m.strip().upper() for m in str(docente.get('Materias de preferencia para dictar', '')).split(';') if m.strip()}
+            materias_alt = {m.strip().upper() for m in str(docente.get('Materias alternativas (opcional)', '')).split(';') if m.strip()}
+            if materia not in materias_pref and materia not in materias_alt:
+                continue
+
+            puntaje_materia = PREF_MAT if materia in materias_pref else ALT_MAT
+
+            if not modo_virtual and modalidad == 'PRESENCIAL':
+                sedes_pref = [s.strip() for s in normalize_n(str(docente.get('Sedes preferidas', ''))).upper().split(';')]
+                sedes_alt = [s.strip() for s in normalize_n(str(docente.get('Sedes alternativas (opcional)', ''))).upper().split(';')] if pd.notna(docente.get('Sedes alternativas (opcional)', '')) else []
+                if sede in sedes_pref:
+                    puntaje_sede = PREF_SEDE
+                elif sede in sedes_alt:
+                    puntaje_sede = ALT_SEDE
+                else:
+                    continue
+            else:
+                puntaje_sede = ALT_SEDE
+
+            cursos_docente = asignados_df[asignados_df['Docentes'] == nombre_docente]
+            total_actual = len(cursos_docente)
+            max_total = int(docente.get('Cantidad máxima de cursos cuatrimestrales', 0) or 0)
+            if total_actual >= max_total:
+                continue
+
+            total_por_modalidad = len(cursos_docente[cursos_docente['Sede'].str.strip().str.upper() == 'UADE ONLINE']) if modalidad == 'ONLINE' else len(cursos_docente[cursos_docente['Sede'].str.strip().str.upper() != 'UADE ONLINE'])
+            try:
+                max_mod = int(docente.get(f'Cantidad máxima de cursos {"online" if modalidad=="ONLINE" else "presenciales"} (opcional)', 0) or 0)
+                if max_mod > 0 and total_por_modalidad >= max_mod:
+                    continue
+            except:
+                pass
+
+            dias_turnos_docente = []
+            for _, c in cursos_docente.iterrows():
+                dias_c = [normalize_n(d.strip()).upper() for d in str(c['Dias De Cursada']).split('+')]
+                turno_c = detectar_turno(c['Horario'])
+                for d in dias_c:
+                    dias_turnos_docente.append((d, turno_c))
+
+            dispo_pref = docente.get(f'Disponibilidad {modalidad.lower()} preferida', '')
+            dispo_alt = docente.get(f'Disponibilidad {modalidad.lower()} alternativa (opcional)', '')
+            disponibilidad_total = set()
+            for bloque in [dispo_pref, dispo_alt]:
+                if pd.notna(bloque):
+                    disponibilidad_total.update(limpiar_valor(b) for b in str(bloque).split(';') if b.strip())
+
+            for nuevo_dia in ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES']:
+                if nuevo_dia == dia_actual:
+                    continue
+                clave = f"{nuevo_dia} {turno}"
+                if clave not in disponibilidad_total:
+                    continue
+                if (nuevo_dia, turno) in dias_turnos_docente:
+                    continue
+
+                puntaje_disp = PREF_DISP if clave in {limpiar_valor(d) for d in str(dispo_pref).split(';')} else ALT_DISP
+                puntaje_total = puntaje_materia + puntaje_sede + puntaje_disp
+
+                if clave not in mejores_por_dia or puntaje_total > mejores_por_dia[clave][1]:
+                    mejores_por_dia[clave] = (nombre_docente, puntaje_total)
+
+        if mejores_por_dia:
+            opciones = []
+            for dia_turno, (nombre, puntaje) in sorted(mejores_por_dia.items(), key=lambda x: -x[1][1]):
+                es_nuevo = nombre not in set(asignados_df['Docentes'].unique())
+                opciones.append({'dia_turno': dia_turno, 'docente': nombre, 'puntaje': puntaje, 'nuevo': es_nuevo})
+            resultado['sugerencias'].append({
+                'clase': clase,
+                'materia': materia,
+                'dia_actual': dia_actual,
+                'turno': turno,
+                'pack_info': pack_info,
+                'opciones': opciones
+            })
 
     return resultado, requisitos_df, asignados_df, no_asignados_df, logs, False
 
@@ -687,6 +790,18 @@ if ejecutar:
             st.caption("Estos cursos no tienen ningún docente que cumpla con las condiciones requeridas, independientemente de la asignación.")
             for c in resultado['cursos_sin_docentes']:
                 st.markdown(f"- {c}")
+
+    st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+
+    # ── Sugerencias de cambio de día ──
+    if resultado['sugerencias']:
+        st.markdown("### 🛠️ Sugerencias para cursos no asignados")
+        st.caption("Cursos sin docente que podrían resolverse cambiando el día, manteniendo el mismo turno.")
+        for s in resultado['sugerencias']:
+            with st.expander(f"Clase {s['clase']} — {s['materia']} | {s['dia_actual']} {s['turno']} | {s['pack_info']}"):
+                for op in s['opciones']:
+                    nuevo_tag = " ✳️ Docente nuevo" if op['nuevo'] else ""
+                    st.markdown(f"➤ **{op['dia_turno']}** con **{op['docente']}**{nuevo_tag} — Puntaje estimado: {op['puntaje']}")
 
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
