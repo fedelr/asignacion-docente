@@ -133,9 +133,20 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
 
     # Deduplicar por correo
     if 'Hora de finalización' in requisitos_df.columns and 'Correo electrónico' in requisitos_df.columns:
-        requisitos_df['Hora de finalización'] = pd.to_datetime(
-            requisitos_df['Hora de finalización'], format='%d/%m/%Y %H:%M'
-        )
+        try:
+            requisitos_df['Hora de finalización'] = pd.to_datetime(
+                requisitos_df['Hora de finalización'], format='%d/%m/%Y %H:%M'
+            )
+            logs.append("✅ Formato de fecha identificado correctamente: dd/mm/yyyy hh:mm")
+        except:
+            try:
+                requisitos_df['Hora de finalización'] = pd.to_datetime(
+                    requisitos_df['Hora de finalización'], dayfirst=True
+                )
+                formato_detectado = requisitos_df['Hora de finalización'].iloc[0]
+                logs.append(f"⚠️ Formato de fecha inferido automáticamente. Primera fecha detectada: {formato_detectado}")
+            except Exception as e:
+                logs.append(f"❌ No se pudo interpretar la columna 'Hora de finalización'. La deduplicación no se aplicará. Detalle: {e}")
         con_correo  = requisitos_df[requisitos_df['Correo electrónico'].notna() & (requisitos_df['Correo electrónico'].str.strip() != '')]
         con_correo  = con_correo.sort_values('Hora de finalización').groupby('Correo electrónico', as_index=False).last()
         sin_correo  = requisitos_df[requisitos_df['Correo electrónico'].isna() | (requisitos_df['Correo electrónico'].str.strip() == '')]
@@ -404,7 +415,172 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
 
 # ─── UI ──────────────────────────────────────────────────────────────────────
 st.markdown("# Asignación Docente")
+st.markdown("**Fecha:** 23/04/2025 · **Autor:** Federico La Rocca")
 st.markdown("Completá los campos, subí los archivos y ejecutá el sistema.")
+st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+
+# ── Instructivo ──
+with st.expander("📖 Instrucciones y documentación"):
+    st.markdown("""
+## ¿Qué hace este sistema?
+
+Asigna automáticamente docentes a cursos usando programación lineal entera (PuLP). A partir de dos archivos CSV —uno con los requisitos de cada docente y otro con la programación de clases— el sistema encuentra la combinación de asignaciones que maximiza un puntaje compuesto, respetando todas las restricciones definidas.
+
+---
+
+## Formularios para docentes
+
+El sistema requiere que cada docente complete un formulario con sus preferencias y disponibilidad. A continuación se proveen dos plantillas según el contexto de asignación.
+
+**Formulario solo online**
+Para cuatrimestres donde todos los cursos son online. No incluye preguntas de sede ni disponibilidad presencial.
+👉 [Link para duplicar — Formulario online](#)
+
+**Formulario presencial + online**
+Para cuatrimestres con cursos presenciales y/o online. El docente puede indicar preferencias de sede y disponibilidad para ambas modalidades.
+👉 [Link para duplicar — Formulario presencial + online](#)
+
+---
+
+## Instrucciones para configurar el formulario
+
+**Nombres de columnas y valores**
+Los nombres de las columnas del formulario **no deben modificarse bajo ningún concepto**. El sistema los busca de forma exacta, y cualquier cambio —aunque sea un espacio de más o una tilde distinta— va a provocar errores. Lo mismo aplica para los valores predefinidos de las preguntas de opción múltiple (turnos, sedes, modalidades): no deben modificarse.
+
+**Nombres de materias**
+Las materias que se listen en el formulario deben escribirse **exactamente igual** a como figuran en el archivo de programación de clases. Una diferencia mínima (mayúsculas, tildes, abreviaturas) va a hacer que el sistema no reconozca la materia y no asigne al docente a ese curso.
+
+**Columna `Apellido, Nombre`**
+Esta columna puede eliminarse del formulario sin problema. Cuando el docente inicia sesión con su cuenta institucional, Microsoft Forms guarda automáticamente su nombre en la columna `Nombre`, que es la que usa el sistema en primer lugar. Si preferís mantener `Apellido, Nombre` como respaldo, podés hacerlo. También es útil si necesitás agregar manualmente algún docente que no completó el formulario.
+
+> ⚠️ **Importante:** avisale a cada docente que complete el formulario **desde su cuenta institucional** (`@uade.edu.ar`). Si lo completa desde una cuenta personal, el nombre y el correo electrónico no van a quedar registrados correctamente, lo que puede afectar la deduplicación de respuestas.
+
+---
+
+## Antes de empezar
+
+### ¿Qué archivos necesito?
+
+Necesitás tener dos archivos en formato **CSV**:
+
+1. **Archivo de requisitos docentes** — es la exportación del formulario que completan los profesores. Lo descargás desde Microsoft Forms como Excel y luego lo guardás como CSV.
+2. **Archivo de programación de clases** — es la planilla con los cursos a asignar, exportada también como CSV.
+
+### ¿Cómo obtener el CSV a partir del formulario?
+
+1. Abrí el formulario en Microsoft Forms y hacé clic en la pestaña **Respuestas**
+2. Hacé clic en **Abrir en Excel** — esto descarga directamente un archivo Excel con todas las respuestas
+3. Abrí ese archivo en Excel
+4. Guardalo como **CSV UTF-8 (delimitado por comas)** — es importante elegir específicamente esta opción para que las tildes y la ñ se vean correctamente
+5. Ese es el archivo que subís al sistema
+
+### ¿Cómo debe estar separado el CSV?
+
+El sistema espera que los valores estén separados por **punto y coma (;)**. Si al abrir el CSV en el Bloc de Notas ves que los valores están separados por comas, tenés que corregirlo antes de usarlo:
+
+1. Abrí el archivo en Excel
+2. Guardalo como **CSV UTF-8 (delimitado por comas)**
+3. Abrilo en el Bloc de Notas
+4. Hacé Ctrl+H (buscar y reemplazar), buscá `,` y reemplazá por `;`
+5. Guardá
+
+### ¿Qué formato de fecha deben tener las columnas del formulario?
+
+El sistema usa la columna `Hora de finalización` para determinar cuál es la última respuesta de cada docente en caso de que haya respondido más de una vez. El formato preferido es `dd/mm/yyyy hh:mm` (por ejemplo: `23/04/2026 14:17`). Si al abrir el archivo en Excel ves que las fechas tienen otro formato, podés corregirlo antes de exportar el CSV:
+
+1. Seleccioná la columna `Hora de finalización`
+2. Hacé clic derecho → **Formato de celdas**
+3. Elegí la categoría **Personalizada**
+4. En el campo de formato escribí: `dd/mm/yyyy hh:mm`
+5. Aceptá y volvé a exportar el archivo como CSV UTF-8
+
+Si el formato no es exactamente ese, el sistema va a intentar detectarlo automáticamente e informará en pantalla si lo logró correctamente.
+
+### ¿Qué nombres deben tener los archivos?
+
+Podés nombrarlos como quieras, pero **sin espacios ni caracteres especiales** (sin tildes, sin ñ, sin paréntesis).
+
+---
+
+## Columnas del formulario y su comportamiento en el sistema
+
+| Columna | ¿Obligatoria? | ¿Qué pasa si falta o está vacía? |
+|---|---|---|
+| `Nombre` | No | Se usa `Apellido, Nombre` como respaldo |
+| `Apellido, Nombre` | Solo si no hay `Nombre` | Si ambas faltan, el docente no se carga |
+| `Correo electrónico` | No | El docente se incluye pero no se deduplica |
+| `Hora de finalización` | No | No se deduplican respuestas múltiples |
+| `Materias de preferencia para dictar` | **Sí** | Sin materias, el docente no puede ser asignado |
+| `Materias alternativas (opcional)` | No | Solo se consideran las materias preferidas |
+| `Cantidad máxima de cursos cuatrimestrales` | **Sí** | Sin este valor, el sistema asigna 0 cursos |
+| `Disponibilidad online preferida` | **Sí** (modo online) | Sin disponibilidad, el docente no puede ser asignado |
+| `Disponibilidad online alternativa (opcional)` | No | Solo se considera la disponibilidad preferida |
+| `Disponibilidad presencial preferida` | **Sí** (modo presencial) | Sin disponibilidad, el docente no puede ser asignado |
+| `Disponibilidad presencial alternativa (opcional)` | No | Solo se considera la disponibilidad preferida |
+| `Sedes preferidas` | **Sí** (modo presencial) | Su ausencia activa el modo todo-online automáticamente |
+| `Sedes alternativas (opcional)` | No | Solo se consideran las sedes preferidas |
+| `Modalidades de su interés` | No (modo online) | En modo todo-online se omite; en modo mixto es obligatoria |
+| `Cantidad máxima de cursos online (opcional)` | No | Sin este valor no hay límite por modalidad online |
+| `Cantidad máxima de cursos presenciales (opcional)` | No | Sin este valor no hay límite por modalidad presencial |
+| `Cantidad máxima de cursos a la mañana (opcional)` | No | Sin este valor no hay límite por turno mañana |
+| `Cantidad máxima de cursos a la tarde (opcional)` | No | Sin este valor no hay límite por turno tarde |
+| `Cantidad máxima de cursos a la noche (opcional)` | No | Sin este valor no hay límite por turno noche |
+
+---
+
+## Cómo ejecutar el sistema paso a paso
+
+**Paso 1 — Subir los archivos**
+Usá los botones de carga para subir los dos archivos CSV.
+
+**Paso 2 — Ingresar el departamento**
+Escribí el nombre del departamento exactamente como figura en el archivo de programación. Si lo dejás vacío, se procesarán todos los cursos.
+
+**Paso 3 — Ejecutar**
+Hacé clic en **Ejecutar asignación**. El sistema puede tardar varios minutos dependiendo de la cantidad de docentes y cursos. No cerrés la pestaña ni interrumpas la ejecución.
+
+**Paso 4 — Ver los resultados y descargar**
+Una vez finalizado, los resultados aparecen en pantalla. Podés descargar el archivo `programacion_actualizada.csv` con el botón de descarga.
+
+> ⚠️ **Cómo abrir correctamente el archivo de resultados en Excel**
+> Si abrís el archivo `programacion_actualizada.csv` con doble clic, Excel va a mostrar mal las tildes, la ñ y otros caracteres especiales. La manera correcta de abrirlo es:
+> 1. Abrí Excel primero, sin abrir ningún archivo
+> 2. Andá a la pestaña **Datos**
+> 3. Hacé clic en **Obtener datos externos** → **Desde texto/CSV**
+> 4. Seleccioná el archivo y asegurate de elegir codificación **UTF-8**
+> 5. Finalizá la importación
+
+---
+
+## Si algo sale mal
+
+**El sistema no encuentra el archivo**
+Verificá que el nombre del archivo no tenga caracteres especiales y que esté correctamente subido.
+
+**Las tildes y la ñ se ven mal**
+
+- **Dentro del sistema o en el análisis (el CSV que subís tiene caracteres rotos)**
+  El archivo CSV no está en formato UTF-8. Volvé a exportarlo desde Excel eligiendo específicamente **CSV UTF-8**.
+
+- **En el archivo de resultados que descargás (`programacion_actualizada.csv`)**
+  El archivo está correctamente codificado, pero Excel lo interpreta mal cuando se abre con doble clic. Seguí los pasos de la sección anterior para abrirlo correctamente.
+
+**La deduplicación de respuestas no funcionó correctamente**
+Verificá que la columna `Hora de finalización` tenga el formato `dd/mm/yyyy hh:mm`. Si no, corregilo en Excel siguiendo los pasos de la sección "¿Qué formato de fecha deben tener las columnas del formulario?". El sistema informará en pantalla si el formato fue identificado correctamente o si tuvo que inferirlo automáticamente.
+
+**El sistema dice que una columna no existe**
+Los nombres de las columnas en el CSV deben coincidir exactamente con los que espera el sistema. No los modifiques.
+
+**El resultado dice 0% de asignación o muy pocos docentes asignados**
+Puede deberse a que las disponibilidades declaradas por los docentes no coinciden con ningún curso de la programación, o a que los nombres de las materias en el formulario no coinciden exactamente con los de la programación.
+
+**El sistema tarda mucho**
+Es normal. Dependiendo de la cantidad de docentes y cursos, puede tardar varios minutos. No cerrés la pestaña ni interrumpas la ejecución.
+
+**Aparece un error en rojo y el sistema se detiene**
+Copiá el mensaje de error y consultalo con quien administra el sistema. No modifiques el código por tu cuenta.
+    """)
+
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
 # ── Inputs ──
