@@ -552,7 +552,7 @@ Las materias que se listen en el formulario deben escribirse **exactamente igual
 
 Esta columna puede eliminarse del formulario sin problema. Cuando el docente inicia sesión con su cuenta institucional, Microsoft Forms guarda automáticamente su nombre en la columna `Nombre`. Si preferís mantener `Apellido, Nombre` como respaldo, podés hacerlo.
 
-> ⚠️ **Importante:** avisale a cada docente que complete el formulario **desde su cuenta institucional** (`@uade.edu.ar`).
+**⚠️ Importante:** avisale a cada docente que complete el formulario **desde su cuenta institucional** (`@uade.edu.ar`).
     """)
 
 with st.expander("⚙️ Antes de empezar"):
@@ -575,7 +575,9 @@ with st.expander("⚙️ Antes de empezar"):
 
 **¿Qué formato de fecha deben tener las columnas del formulario?**
 
-El sistema usa `Hora de finalización` para determinar la última respuesta de cada docente. Formato preferido: `dd/mm/yyyy hh:mm`. Para corregirlo en Excel:
+El sistema usa `Hora de finalización` para determinar la última respuesta de cada docente. El formato esperado es `dd/mm/yyyy hh:mm` (ejemplo: `23/04/2026 14:17`).
+
+Si al abrir el archivo en Excel ves que las fechas **no tienen ese formato**, podés corregirlo antes de exportar:
 1. Seleccioná la columna `Hora de finalización`
 2. Clic derecho → **Formato de celdas** → **Personalizada**
 3. Escribí: `dd/mm/yyyy hh:mm`
@@ -585,13 +587,13 @@ Si el formato no coincide, el sistema intentará detectarlo automáticamente e i
 
 ---
 
-> 🔴 **Importante: cómo abrir el archivo de resultados en Excel**
->
-> Si abrís `programacion_actualizada.csv` con doble clic, las tildes y la ñ se van a ver mal. La única manera correcta de abrirlo es:
-> 1. Abrí Excel primero, sin abrir ningún archivo
-> 2. Andá a la pestaña **Datos** → **Obtener datos externos** → **Desde texto/CSV**
-> 3. Seleccioná el archivo y elegí codificación **UTF-8**
-> 4. Finalizá la importación
+**⚠️ Importante: cómo abrir el archivo de resultados en Excel**
+
+Si abrís `programacion_actualizada.csv` con doble clic, las tildes y la ñ se van a ver mal. La única manera correcta de abrirlo es:
+1. Abrí Excel primero, sin abrir ningún archivo
+2. Andá a la pestaña **Datos** → **Obtener datos externos** → **Desde texto/CSV**
+3. Seleccioná el archivo y elegí codificación **UTF-8**
+4. Finalizá la importación
     """)
 
 with st.expander("📊 Columnas del formulario y su comportamiento"):
@@ -646,7 +648,7 @@ Verificá que el archivo esté correctamente subido y sin caracteres especiales 
 
 **Las tildes y la ñ se ven mal**
 
-- **Dentro del sistema** — El CSV no está en formato UTF-8. Volvé a exportarlo eligiendo **CSV UTF-8**.
+- **En los archivos originales** — El CSV no está en formato UTF-8. Volvé a exportarlo eligiendo **CSV UTF-8**.
 - **En el archivo de resultados** — Abrilo desde Excel → Datos → Desde texto/CSV, eligiendo codificación UTF-8.
 
 **La deduplicación no funcionó correctamente**
