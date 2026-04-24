@@ -602,13 +602,15 @@ with st.expander("📊 Columnas del formulario y su comportamiento"):
     st.markdown("""
 **¿Cómo detecta el sistema los turnos?**
 
-El sistema determina el turno de cada curso según el horario de inicio que figura en el archivo de programación:
+El sistema determina el turno de cada curso buscando ciertos substrings dentro del campo `Horario` del archivo de programación. No parsea el horario de forma estructurada — simplemente verifica si alguno de estos valores aparece en cualquier parte del texto de ese campo:
 
-- **Mañana:** horarios que contienen `08:15`, `07:45` o `09:00`
-- **Tarde:** horarios que contienen `14:00`
-- **Noche:** horarios que contienen `18:30`
+- **Mañana:** el campo contiene `08:15`, `07:45` o `09:00`
+- **Tarde:** el campo contiene `14:00`
+- **Noche:** el campo contiene `18:30`
 
-Si un curso tiene un horario de inicio distinto a estos valores (por ejemplo `10:00` o `16:00`), el sistema no lo va a reconocer como ningún turno y lo va a ignorar en las restricciones de disponibilidad y superposición. Si notás que un docente no está matcheando con un curso, verificá que el horario del curso coincida con alguno de estos valores.
+Por ejemplo, si el campo dice `08:15 - 11:30`, el sistema lo reconoce como mañana porque el string `08:15` está presente. Si el campo tiene un formato distinto o un horario de inicio no incluido en esta lista (por ejemplo `10:00` o `16:00`), el sistema no va a reconocer el turno y ese curso quedará fuera de las restricciones de disponibilidad y superposición.
+
+Si notás que un docente no está matcheando con un curso, verificá que el campo `Horario` del curso contenga exactamente uno de los valores listados arriba.
 
 ---
 
