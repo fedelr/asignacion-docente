@@ -132,7 +132,7 @@ def es_disponible(docente, curso, turno, dias, modalidad):
 def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
                         PREF_MAT, PREF_SEDE, PREF_DISP,
                         ALT_MAT, ALT_SEDE, ALT_DISP,
-                        VALOR_ASIGNADO_DOCENTE, NO_ASIGNADO=0):
+                        VALOR_ASIGNADO_DOCENTE, NO_ASIGNADO=0, progress_bar=None):
 
     logs = []
 
@@ -240,7 +240,11 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
             except:
                 pass
 
-    for j, docente in requisitos_df.iterrows():
+    total_docentes = len(requisitos_df)
+    for idx, (j, docente) in enumerate(requisitos_df.iterrows()):
+        if progress_bar is not None:
+            pct = int((idx + 1) / total_docentes * 100)
+            progress_bar.progress(pct, text=f"Analizando superposiciones... {idx + 1}/{total_docentes} docentes")
         for i1, curso1 in programacion_df.iterrows():
             dias1  = [normalize_n(d.strip()).upper() for d in str(curso1['Dias De Cursada']).split('+')]
             turno1 = ('MANANA' if '08:15' in curso1['Horario'] or '07:45' in curso1['Horario'] or '09:00' in curso1['Horario']
@@ -777,13 +781,14 @@ if ejecutar:
         st.error(f"No se pudo leer uno de los archivos. Verificá que estén en formato CSV UTF-8 separado por punto y coma. Detalle: {e}")
         st.stop()
 
-    with st.spinner("Analizando y optimizando... esto puede tardar unos minutos."):
-        resultado, req_df, asignados_df, no_asignados_df, logs, inviable = correr_optimizacion(
-            requisitos_df, programacion_df, departamento,
-            PREF_MAT, PREF_SEDE, PREF_DISP,
-            ALT_MAT, ALT_SEDE, ALT_DISP,
-            VALOR_DOCENTE
-        )
+    progress_bar = st.progress(0, text="Preparando el modelo...")
+    resultado, req_df, asignados_df, no_asignados_df, logs, inviable = correr_optimizacion(
+        requisitos_df, programacion_df, departamento,
+        PREF_MAT, PREF_SEDE, PREF_DISP,
+        ALT_MAT, ALT_SEDE, ALT_DISP,
+        VALOR_DOCENTE, progress_bar=progress_bar
+    )
+    progress_bar.empty()
 
     for log in logs:
         st.info(log)
