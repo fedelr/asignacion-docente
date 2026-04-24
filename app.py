@@ -97,7 +97,7 @@ def detectar_turno(horario):
     horario = str(horario)
     if any(h in horario for h in ['08:15', '07:45', '09:00']):
         return 'MANANA'
-    elif '14:00' in horario:
+    elif '14:00' in horario or '13:30' in horario:
         return 'TARDE'
     elif '18:30' in horario:
         return 'NOCHE'
@@ -229,7 +229,7 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
                         asignacion[(i, j)]
                         for i, curso in programacion_df.iterrows()
                         if (('08:15' in curso['Horario'] or '07:45' in curso['Horario'] or '09:00' in curso['Horario']) and turno == 'MANANA' or
-                            ('14:00' in curso['Horario']) and turno == 'TARDE' or
+                            ('14:00' in curso['Horario'] or '13:30' in curso['Horario']) and turno == 'TARDE' or
                             ('18:30' in curso['Horario']) and turno == 'NOCHE')
                     ) <= max_turno
             except:
@@ -239,7 +239,7 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
         for i1, curso1 in programacion_df.iterrows():
             dias1  = [normalize_n(d.strip()).upper() for d in str(curso1['Dias De Cursada']).split('+')]
             turno1 = ('MANANA' if '08:15' in curso1['Horario'] or '07:45' in curso1['Horario'] or '09:00' in curso1['Horario']
-                      else 'TARDE' if '14:00' in curso1['Horario']
+                      else 'TARDE' if '14:00' in curso1['Horario'] or '13:30' in curso1['Horario']
                       else 'NOCHE' if '18:30' in curso1['Horario'] else None)
             if not turno1:
                 continue
@@ -248,7 +248,7 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
                     continue
                 dias2  = [normalize_n(d.strip()).upper() for d in str(curso2['Dias De Cursada']).split('+')]
                 turno2 = ('MANANA' if '08:15' in curso2['Horario'] or '07:45' in curso2['Horario'] or '09:00' in curso2['Horario']
-                          else 'TARDE' if '14:00' in curso2['Horario']
+                          else 'TARDE' if '14:00' in curso2['Horario'] or '13:30' in curso2['Horario']
                           else 'NOCHE' if '18:30' in curso2['Horario'] else None)
                 if turno1 != turno2 or not turno2:
                     continue
@@ -261,7 +261,7 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
         sede     = curso['Sede'].strip().upper()
         materia  = curso['Materia'].strip().upper()
         turno    = ('MANANA' if ('08:15' in horario or '07:45' in horario or '09:00' in horario)
-                    else 'TARDE' if '14:00' in horario
+                    else 'TARDE' if '14:00' in horario or '13:30' in horario
                     else 'NOCHE' if '18:30' in horario else None)
         modalidad = 'ONLINE' if sede == 'UADE ONLINE' else 'PRESENCIAL'
 
@@ -377,7 +377,7 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
         horario  = curso['Horario'].upper()
         dia      = normalize_n(str(curso['Dias De Cursada']).split('+')[0].strip()).upper()
         turno    = ('MANANA' if ('08:15' in horario or '07:45' in horario or '09:00' in horario)
-                    else 'TARDE' if '14:00' in horario else 'NOCHE' if '18:30' in horario else None)
+                    else 'TARDE' if '14:00' in horario or '13:30' in horario else 'NOCHE' if '18:30' in horario else None)
         modalidad = 'ONLINE' if sede == 'UADE ONLINE' else 'PRESENCIAL'
         elegibles = 0
         for j, docente in requisitos_df.iterrows():
@@ -518,7 +518,7 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
 
 # ─── UI ──────────────────────────────────────────────────────────────────────
 st.markdown("# Asignación Docente")
-st.markdown("**Fecha:** 23/04/2026 · **Autor:** Federico La Rocca")
+st.markdown("**Autor:** Federico La Rocca")
 st.markdown("Completá los campos, subí los archivos y ejecutá el sistema.")
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
@@ -531,12 +531,12 @@ with st.expander("📋 Formularios para docentes"):
 **Formulario solo online**
 
 Para cuatrimestres donde todos los cursos son online. No incluye preguntas de sede ni disponibilidad presencial.
-👉 [Link para duplicar — Formulario online](#)
+👉 [Link para duplicar — Formulario online](https://www.google.com/url?q=https%3A%2F%2Fforms.office.com%2FPages%2FShareFormPage.aspx%3Fid%3D0HlJNB3TV0yLoEka_0rK7ZA9pFBFJ-BBhnD8WLkExvlUQVRISVpXMlNDMkE3M0xFWlpDRklVUUxMRS4u%26sharetoken%3DEru3ysaovbuzf98ja8Hm)
 
 **Formulario presencial + online**
 
 Para cuatrimestres con cursos presenciales y/o online. El docente puede indicar preferencias de sede y disponibilidad para ambas modalidades.
-👉 [Link para duplicar — Formulario presencial + online](#)
+👉 [Link para duplicar — Formulario presencial + online](https://www.google.com/url?q=https%3A%2F%2Fforms.office.com%2FPages%2FShareFormPage.aspx%3Fid%3D0HlJNB3TV0yLoEka_0rK7ZA9pFBFJ-BBhnD8WLkExvlUMjE2VE5SN1FTMVVEWEpQT1BOODdENUtQNi4u%26sharetoken%3D17Gvd9cnDaWO0FnzR9lL)
 
 ---
 
@@ -605,7 +605,7 @@ with st.expander("📊 Columnas del formulario y su comportamiento"):
 El sistema determina el turno de cada curso buscando ciertos substrings dentro del campo `Horario` del archivo de programación. No parsea el horario de forma estructurada — simplemente verifica si alguno de estos valores aparece en cualquier parte del texto de ese campo:
 
 - **Mañana:** el campo contiene `08:15`, `07:45` o `09:00`
-- **Tarde:** el campo contiene `14:00`
+- **Tarde:** el campo contiene `14:00` o `13:30`
 - **Noche:** el campo contiene `18:30`
 
 Por ejemplo, si el campo dice `08:15 - 11:30`, el sistema lo reconoce como mañana porque el string `08:15` está presente. Si el campo tiene un formato distinto o un horario de inicio no incluido en esta lista (por ejemplo `10:00` o `16:00`), el sistema no va a reconocer el turno y ese curso quedará fuera de las restricciones de disponibilidad y superposición.
@@ -685,7 +685,7 @@ Es normal. No cerrés la pestaña ni interrumpas la ejecución.
 
 **Un docente no está siendo asignado a un curso que debería poder tomar**
 
-Verificá que el horario de inicio del curso coincida con alguno de los valores que el sistema reconoce: `08:15`, `07:45` o `09:00` para mañana, `14:00` para tarde, y `18:30` para noche. Si el horario es distinto, el sistema no va a reconocer el turno y no va a poder hacer el match con la disponibilidad del docente.
+Verificá que el horario de inicio del curso coincida con alguno de los valores que el sistema reconoce: `08:15`, `07:45` o `09:00` para mañana, `14:00` o `13:30` para tarde, y `18:30` para noche. Si el horario es distinto, el sistema no va a reconocer el turno y no va a poder hacer el match con la disponibilidad del docente.
 
 **Aparece un error en rojo y el sistema se detiene**
 
