@@ -152,9 +152,9 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
                 logs.append(f"⚠️ Formato de fecha inferido automáticamente. Primera fecha detectada: {formato_detectado}")
             except Exception as e:
                 logs.append(f"❌ No se pudo interpretar la columna 'Hora de finalización'. La deduplicación no se aplicará. Detalle: {e}")
-        con_correo  = requisitos_df[requisitos_df['Correo electrónico'].notna() & (requisitos_df['Correo electrónico'].str.strip() != '')]
+        con_correo  = requisitos_df[requisitos_df['Correo electrónico'].notna() & (requisitos_df['Correo electrónico'].str.strip() != '') & (requisitos_df['Correo electrónico'].str.strip().str.lower() != 'anonymous')]
         con_correo  = con_correo.sort_values('Hora de finalización').groupby('Correo electrónico', as_index=False).last()
-        sin_correo  = requisitos_df[requisitos_df['Correo electrónico'].isna() | (requisitos_df['Correo electrónico'].str.strip() == '')]
+        sin_correo  = requisitos_df[requisitos_df['Correo electrónico'].isna() | (requisitos_df['Correo electrónico'].str.strip() == '') | (requisitos_df['Correo electrónico'].str.strip().str.lower() == 'anonymous')]
         requisitos_df = pd.concat([con_correo, sin_correo], ignore_index=True)
         logs.append(f"✅ {len(requisitos_df)} docentes únicos cargados tras deduplicar respuestas.")
 
