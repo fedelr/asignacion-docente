@@ -20,7 +20,12 @@ html, body, [class*="css"] {
     font-family: 'DM Sans', sans-serif;
 }
 
-h1, h2, h3 {
+h1 {
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 600 !important;
+}
+
+h2, h3 {
     font-family: 'DM Serif Display', serif !important;
 }
 
