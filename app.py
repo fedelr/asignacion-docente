@@ -603,6 +603,27 @@ Si abrís `programacion_actualizada.csv` con doble clic, las tildes y la ñ se v
 Una vez abierto correctamente, guardalo como archivo Excel (`.xlsx`) para poder seguir trabajando con él sin perder el formato.
     """)
 
+with st.expander("🎯 Cómo ajustar prioridades manualmente"):
+    st.markdown("""
+El sistema asigna docentes de forma automática según los datos del formulario, pero es posible intervenir manualmente antes de subir el archivo para influir en el resultado. La clave está en editar el Excel de respuestas del formulario antes de exportarlo como CSV.
+
+**Modificar materias preferidas y alternativas**
+
+Cada docente declara en el formulario sus materias preferidas y alternativas. El sistema le da mayor puntaje a las preferidas, por lo que un docente con una materia como preferida va a tener ventaja sobre otro que la tiene como alternativa.
+
+Si el algoritmo está eligiendo a un docente sobre otro y querés invertir esa prioridad, podés editar directamente el Excel:
+- Mover una materia de preferidas a alternativas en el docente que querés desfavorecer
+- O moverla de alternativas a preferidas en el docente que querés favorecer
+
+**Limitar la cantidad máxima de cursos**
+
+Cada docente tiene una columna `Cantidad máxima de cursos cuatrimestrales`. Podés reducir ese número manualmente para limitar cuántos cursos puede recibir un docente en particular. Esto es útil, por ejemplo, si querés reducir la carga de un docente con baja calificación o si preferís distribuir más los cursos entre varios profesores.
+
+**Conclusión**
+
+El archivo de respuestas del formulario no es solo una exportación de datos — es un punto de intervención. El director de departamento puede abrirlo en Excel, ajustar los valores que considere necesarios, y recién entonces exportarlo como CSV y subirlo al sistema. El resultado final va a reflejar esos ajustes.
+    """)
+
 with st.expander("📊 Columnas del formulario y su comportamiento"):
     st.markdown("""
 **¿Cómo detecta el sistema los turnos?**
