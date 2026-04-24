@@ -6,7 +6,7 @@ from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpStatus
 
 # ─── PAGE CONFIG ────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Asignación Docente",
+    page_title="Sistema de Asignación Docente",
     page_icon="🎓",
     layout="centered"
 )
@@ -517,7 +517,7 @@ def correr_optimizacion(requisitos_df, programacion_df, departamento_filtro,
 
 
 # ─── UI ──────────────────────────────────────────────────────────────────────
-st.markdown("# Asignación Docente")
+st.markdown("# 👨‍🏫 Sistema de Asignación Docente")
 st.markdown("**Autor:** Federico La Rocca")
 st.markdown("Completá los campos, subí los archivos y ejecutá el sistema.")
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
