@@ -594,10 +594,24 @@ Si abrís `programacion_actualizada.csv` con doble clic, las tildes y la ñ se v
 2. Andá a la pestaña **Datos** → **Obtener datos externos** → **Desde texto/CSV**
 3. Seleccioná el archivo y elegí codificación **UTF-8**
 4. Finalizá la importación
+
+Una vez abierto correctamente, guardalo como archivo Excel (`.xlsx`) para poder seguir trabajando con él sin perder el formato.
     """)
 
 with st.expander("📊 Columnas del formulario y su comportamiento"):
     st.markdown("""
+**¿Cómo detecta el sistema los turnos?**
+
+El sistema determina el turno de cada curso según el horario de inicio que figura en el archivo de programación:
+
+- **Mañana:** horarios que contienen `08:15`, `07:45` o `09:00`
+- **Tarde:** horarios que contienen `14:00`
+- **Noche:** horarios que contienen `18:30`
+
+Si un curso tiene un horario de inicio distinto a estos valores (por ejemplo `10:00` o `16:00`), el sistema no lo va a reconocer como ningún turno y lo va a ignorar en las restricciones de disponibilidad y superposición. Si notás que un docente no está matcheando con un curso, verificá que el horario del curso coincida con alguno de estos valores.
+
+---
+
 | Columna | ¿Obligatoria? | ¿Qué pasa si falta o está vacía? |
 |---|---|---|
 | `Nombre` | No | Se usa `Apellido, Nombre` como respaldo |
@@ -666,6 +680,10 @@ Verificá que las disponibilidades y los nombres de materias coincidan exactamen
 **El sistema tarda mucho**
 
 Es normal. No cerrés la pestaña ni interrumpas la ejecución.
+
+**Un docente no está siendo asignado a un curso que debería poder tomar**
+
+Verificá que el horario de inicio del curso coincida con alguno de los valores que el sistema reconoce: `08:15`, `07:45` o `09:00` para mañana, `14:00` para tarde, y `18:30` para noche. Si el horario es distinto, el sistema no va a reconocer el turno y no va a poder hacer el match con la disponibilidad del docente.
 
 **Aparece un error en rojo y el sistema se detiene**
 
