@@ -529,22 +529,27 @@ with st.expander("📖 ¿Qué hace este sistema?"):
 with st.expander("📋 Formularios para docentes"):
     st.markdown("""
 **Formulario solo online**
+
 Para cuatrimestres donde todos los cursos son online. No incluye preguntas de sede ni disponibilidad presencial.
 👉 [Link para duplicar — Formulario online](#)
 
 **Formulario presencial + online**
+
 Para cuatrimestres con cursos presenciales y/o online. El docente puede indicar preferencias de sede y disponibilidad para ambas modalidades.
 👉 [Link para duplicar — Formulario presencial + online](#)
 
 ---
 
 **Nombres de columnas y valores**
+
 Los nombres de las columnas del formulario **no deben modificarse bajo ningún concepto**. El sistema los busca de forma exacta, y cualquier cambio —aunque sea un espacio de más o una tilde distinta— va a provocar errores. Lo mismo aplica para los valores predefinidos de las preguntas de opción múltiple: no deben modificarse.
 
 **Nombres de materias**
+
 Las materias que se listen en el formulario deben escribirse **exactamente igual** a como figuran en el archivo de programación de clases.
 
 **Columna `Apellido, Nombre`**
+
 Esta columna puede eliminarse del formulario sin problema. Cuando el docente inicia sesión con su cuenta institucional, Microsoft Forms guarda automáticamente su nombre en la columna `Nombre`. Si preferís mantener `Apellido, Nombre` como respaldo, podés hacerlo.
 
 > ⚠️ **Importante:** avisale a cada docente que complete el formulario **desde su cuenta institucional** (`@uade.edu.ar`).
@@ -568,16 +573,6 @@ with st.expander("⚙️ Antes de empezar"):
 
 ---
 
-**¿Cómo debe estar separado el CSV?**
-
-El sistema espera separación por **punto y coma (;)**. Si está separado por comas:
-1. Abrí en Excel y guardá como **CSV UTF-8**
-2. Abrilo en el Bloc de Notas
-3. Ctrl+H: buscá `,` y reemplazá por `;`
-4. Guardá
-
----
-
 **¿Qué formato de fecha deben tener las columnas del formulario?**
 
 El sistema usa `Hora de finalización` para determinar la última respuesta de cada docente. Formato preferido: `dd/mm/yyyy hh:mm`. Para corregirlo en Excel:
@@ -587,6 +582,16 @@ El sistema usa `Hora de finalización` para determinar la última respuesta de c
 4. Aceptá y volvé a exportar como CSV UTF-8
 
 Si el formato no coincide, el sistema intentará detectarlo automáticamente e informará en pantalla.
+
+---
+
+> 🔴 **Importante: cómo abrir el archivo de resultados en Excel**
+>
+> Si abrís `programacion_actualizada.csv` con doble clic, las tildes y la ñ se van a ver mal. La única manera correcta de abrirlo es:
+> 1. Abrí Excel primero, sin abrir ningún archivo
+> 2. Andá a la pestaña **Datos** → **Obtener datos externos** → **Desde texto/CSV**
+> 3. Seleccioná el archivo y elegí codificación **UTF-8**
+> 4. Finalizá la importación
     """)
 
 with st.expander("📊 Columnas del formulario y su comportamiento"):
@@ -617,46 +622,51 @@ with st.expander("📊 Columnas del formulario y su comportamiento"):
 with st.expander("▶ Cómo ejecutar el sistema paso a paso"):
     st.markdown("""
 **Paso 1 — Subir los archivos**
+
 Usá los botones de carga para subir los dos archivos CSV.
 
 **Paso 2 — Ingresar el departamento**
+
 Escribí el nombre del departamento exactamente como figura en el archivo de programación. Si lo dejás vacío, se procesarán todos los cursos.
 
 **Paso 3 — Ejecutar**
+
 Hacé clic en **Ejecutar asignación**. Puede tardar varios minutos. No cerrés la pestaña ni interrumpas la ejecución.
 
 **Paso 4 — Ver los resultados y descargar**
-Los resultados aparecen en pantalla. Podés descargar `programacion_actualizada.csv` con el botón de descarga.
 
-> ⚠️ **Cómo abrir correctamente el archivo de resultados en Excel**
-> Abrirlo con doble clic muestra mal las tildes y la ñ. La manera correcta:
-> 1. Abrí Excel primero
-> 2. Datos → **Obtener datos externos** → **Desde texto/CSV**
-> 3. Seleccioná el archivo y elegí codificación **UTF-8**
+Los resultados aparecen en pantalla. Podés descargar `programacion_actualizada.csv` con el botón de descarga.
     """)
 
 with st.expander("🚨 Si algo sale mal"):
     st.markdown("""
 **El sistema no encuentra el archivo**
+
 Verificá que el archivo esté correctamente subido y sin caracteres especiales en el nombre.
 
 **Las tildes y la ñ se ven mal**
+
 - **Dentro del sistema** — El CSV no está en formato UTF-8. Volvé a exportarlo eligiendo **CSV UTF-8**.
 - **En el archivo de resultados** — Abrilo desde Excel → Datos → Desde texto/CSV, eligiendo codificación UTF-8.
 
 **La deduplicación no funcionó correctamente**
+
 Verificá que `Hora de finalización` tenga el formato `dd/mm/yyyy hh:mm`. El sistema informará si lo identificó correctamente o tuvo que inferirlo.
 
 **El sistema dice que una columna no existe**
+
 Los nombres de columnas no deben modificarse. Deben coincidir exactamente con los que espera el sistema.
 
 **El resultado dice 0% de asignación o muy pocos docentes asignados**
+
 Verificá que las disponibilidades y los nombres de materias coincidan exactamente entre el formulario y la programación.
 
 **El sistema tarda mucho**
+
 Es normal. No cerrés la pestaña ni interrumpas la ejecución.
 
 **Aparece un error en rojo y el sistema se detiene**
+
 Copiá el mensaje de error y consultalo con quien administra el sistema.
     """)
 
@@ -706,8 +716,6 @@ if ejecutar:
         errores_validacion.append("Falta el archivo de requisitos docentes.")
     if not archivo_programacion:
         errores_validacion.append("Falta el archivo de programación de clases.")
-    if not departamento:
-        errores_validacion.append("Ingresá el nombre del departamento.")
 
     if errores_validacion:
         for e in errores_validacion:
